@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,7 +12,24 @@ model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
+  role      Role     @default(USER)
   name      String?
-  role      String   @default("USER") // "ADMIN"
   createdAt DateTime @default(now())
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  title     String
+  content   String   @db.Text
+  thumbnail String?
+  isFeatured Boolean @default(false)
+  tags      String[] // stored as text[] in Postgres via Prisma
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  ADMIN
+  USER
 }
