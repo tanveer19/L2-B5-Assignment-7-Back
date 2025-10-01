@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx src/server.ts",
     "build": "tsc",
-    "seed": "tsx prisma/seed.ts",
+    "seed": "tsx src/prisma/seed.ts",
     "prisma:migrate": "prisma migrate dev --name init"
   },
   "keywords": [],

@@ -45,6 +45,31 @@ router.post("/", authMiddleware, async (req: AuthRequest, res) => {
   res.status(201).json(newBlog);
 });
 
+// PUT /blogs/:id - private (owner only)
+router.put("/:id", authMiddleware, async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  const { title, content, thumbnail, isFeatured } = req.body;
+
+  if (req.user?.role !== "ADMIN")
+    return res.status(403).json({ error: "Forbidden" });
+
+  try {
+    const updatedBlog = await prisma.post.update({
+      where: { id: Number(id) },
+      data: {
+        title,
+        content,
+        thumbnail,
+        isFeatured: isFeatured ?? false,
+      },
+    });
+
+    res.json({ message: "Blog updated successfully", blog: updatedBlog });
+  } catch (err) {
+    res.status(404).json({ error: "Blog not found" });
+  }
+});
+
 // DELETE /blogs/:id - private (owner only)
 router.delete("/:id", authMiddleware, async (req: AuthRequest, res) => {
   const { id } = req.params;
