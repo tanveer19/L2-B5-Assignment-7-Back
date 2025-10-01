@@ -25,6 +25,10 @@ router.post("/login", async (req, res) => {
   const isMatch = await bcryptjs.compare(password, user.password);
   if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
+  if (user.role !== "ADMIN") {
+    return res.status(403).json({ error: "access denied. Admin only" });
+  }
+
   // Generate JWT
   const token = generateToken({ userId: user.id, role: user.role });
 

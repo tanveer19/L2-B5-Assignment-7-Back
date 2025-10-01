@@ -1,14 +1,13 @@
 import express, { Application, Request, Response } from "express";
 import cors from "cors";
-// import morgan from "morgan";
 import loginRouter from "./routes/login";
 import blogsRouter from "./routes/blogs";
-
+import adminRoutes from "./routes/admin";
 const app: Application = express();
 
 // Middleware
 app.use(cors());
-// app.use(morgan("dev"));
+app.use("/api", adminRoutes);
 app.use(express.json());
 
 // Routes
