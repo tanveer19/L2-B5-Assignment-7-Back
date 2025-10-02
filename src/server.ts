@@ -1,40 +1,78 @@
-import express from "express";
-import dotenv from "dotenv";
-import { PrismaClient } from "@prisma/client";
-import authRoutes from "./routes/auth";
+import http, { Server } from "http";
 import app from "./app";
+import dotenv from "dotenv";
+import { prisma } from "./config/db";
 
 dotenv.config();
 
-// const app = express();
-const prisma = new PrismaClient();
+let server: Server | null = null;
 
-app.use(express.json());
-
-// Routes
-app.use("/auth", authRoutes);
-
-// Example protected route (later we’ll add JWT middleware)
-app.get("/protected", (req, res) => {
-  res.json({
-    message: "This is a protected route (TODO: add auth middleware)",
-  });
-});
-
-// Global error handler
-app.use(
-  (
-    err: any,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    console.error(err.stack);
-    res.status(500).json({ error: "Something went wrong!" });
+async function connectToDB() {
+  try {
+    await prisma.$connect()
+    console.log("*** DB connection successfull!!")
+  } catch (error) {
+    console.log("*** DB connection failed!")
+    process.exit(1);
   }
-);
+}
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+async function startServer() {
+  try {
+    await connectToDB()
+    server = http.createServer(app);
+    server.listen(process.env.PORT, () => {
+      console.log(`🚀 Server is running on port ${process.env.PORT}`);
+    });
+
+    handleProcessEvents();
+  } catch (error) {
+    console.error("❌ Error during server startup:", error);
+    process.exit(1);
+  }
+}
+
+/**
+ * Gracefully shutdown the server and close database connections.
+ * @param {string} signal - The termination signal received.
+ */
+async function gracefulShutdown(signal: string) {
+  console.warn(`🔄 Received ${signal}, shutting down gracefully...`);
+
+  if (server) {
+    server.close(async () => {
+      console.log("✅ HTTP server closed.");
+
+      try {
+        console.log("Server shutdown complete.");
+      } catch (error) {
+        console.error("❌ Error during shutdown:", error);
+      }
+
+      process.exit(0);
+    });
+  } else {
+    process.exit(0);
+  }
+}
+
+/**
+ * Handle system signals and unexpected errors.
+ */
+function handleProcessEvents() {
+  process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+  process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+
+  process.on("uncaughtException", (error) => {
+    console.error("💥 Uncaught Exception:", error);
+    gracefulShutdown("uncaughtException");
+  });
+
+  process.on("unhandledRejection", (reason) => {
+    console.error("💥 Unhandled Rejection:", reason);
+    gracefulShutdown("unhandledRejection");
+  });
+}
+
+// Start the application
+startServer();
