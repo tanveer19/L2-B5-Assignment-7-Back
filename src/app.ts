@@ -15,7 +15,10 @@ app.use(express.json()); // Parse incoming JSON requests
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://l2-b5-assignment-7-front.vercel.app",
+    ],
     credentials: true,
   })
 );
