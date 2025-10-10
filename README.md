@@ -49,6 +49,7 @@ Follow these steps to run the project locally 👇
 ### 1️⃣ Clone the repository
 
 ```bash
-git clone https://github.com/your-username/your-repo-name.git
+git clone https://github.com/tanveer19/L2-B5-Assignment-7-Back.git
 cd your-repo-name
+pnpm i
 ```
